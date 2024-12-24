@@ -3,13 +3,9 @@ local M = {}
 ---Creates a floating window
 ---@param config vim.api.keyset.win_config: The configuration for the floating window
 ---@return { buf: number, win: number }: The buffer and window numbers
-M.create_floating_window = function(config)
-  -- Create a buffer
-  local buf = vim.api.nvim_create_buf(false, true) -- No file, scratch buffer
-
-  -- Create the floating window
-  local win = vim.api.nvim_open_win(buf, true, config)
-
+M.create_floating_window = function(config, enter)
+  local buf = vim.api.nvim_create_buf(false, true)
+  local win = vim.api.nvim_open_win(buf, enter or false, config)
   return { buf = buf, win = win }
 end
 
@@ -55,14 +51,22 @@ M.parse_slides = function(lines)
 end
 
 ---@class present.WindowConfigs
----@field background vim.api.keyset.win_config: The name of the window
----@field header vim.api.keyset.win_config: The name of the window
----@field body vim.api.keyset.win_config: The name of the window
+---@field background vim.api.keyset.win_config
+---@field header vim.api.keyset.win_config
+---@field body vim.api.keyset.win_config
+---@field footer vim.api.keyset.win_config
 
 ---@return present.WindowConfigs
 M.create_window_configs = function()
   local width = vim.o.columns
   local height = vim.o.lines
+
+  local header_height = 1 + 2 -- 1 + border
+  local footer_height = 1 -- 1, no border
+  local body_height = height - header_height - footer_height - 2
+
+  local body_indent = 8
+  local body_width = width - body_indent
 
   return {
     background = {
@@ -87,15 +91,23 @@ M.create_window_configs = function()
     },
     body = {
       relative = "editor",
-      width = width - 8,
-      height = height - 5,
+      width = body_width,
+      height = body_height,
       style = "minimal",
       border = { " ", " ", " ", " ", " ", " ", " ", " " },
-      col = 8,
+      col = body_indent,
       row = 3,
       zindex = 2,
     },
-    -- footer = {},
+    footer = {
+      relative = "editor",
+      width = width,
+      height = 1,
+      style = "minimal",
+      col = 0,
+      row = height - 1,
+      zindex = 2,
+    },
   }
 end
 
