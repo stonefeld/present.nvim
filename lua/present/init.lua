@@ -122,4 +122,6 @@ M.start_presenting = function(opts)
   set_slide_content(state.current_slide)
 end
 
+M._parse_slides = utils.parse_slides
+
 return M
